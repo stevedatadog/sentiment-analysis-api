@@ -1,5 +1,6 @@
-const crypto = require("crypto")
-const { DynamoDB, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const crypto = require("crypto");
+const { DynamoDB, PutItemCommand, ScanCommand } = require("@aws-sdk/client-dynamodb");
+const tableName = "storedog-sentiment-v2";
 
 async function routes (fastify, options) {
 
@@ -13,35 +14,48 @@ async function routes (fastify, options) {
     return { 'message': 'Greetings from the Storedog Sentiment Analysis Engine' }
   })
 
+  // Returns all sentiment records from the previous X minutes
   fastify.get('/query', async (request, reply) => {
+
+    const minutes = (request['query'] && request['query']['minutes']) ? request['query']['minutes'] : 1;
+    const queryTime = Math.floor(new Date().getTime() / 1000) - (minutes * 60);
+
+    const params = {
+      FilterExpression: "timestamp_utc > :qt",
+      ExpressionAttributeValues: { ":qt": { N: `${queryTime}` } },
+      ProjectionExpression: "id, product, media_source, sentiment, timestamp_utc",
+      TableName: tableName
+    }
+
     try {
-      const results = await client.listTables({});
-      // debug
-      console.log(results.TableNames.join("\n"));
+      const results = await client.send(new ScanCommand(params));
       return { 'message': 'All sentiment stuff.' }
     } catch (err) {
       fastify.log.error(err)
     }
   })
 
+  // Creates a sentiment record
   fastify.post('/create', async (request, reply) => {
-    id = crypto.randomUUID();
-    timestamp_utc = Math.floor(new Date().getTime() / 1000);
+    const id = crypto.randomUUID();
+    const timestamp_utc = Math.floor(new Date().getTime() / 1000);
+    const { product, source, sentiment } = request['body'];
     const item = {
-      TableName: "storedog-sentiment-v2",
+      TableName: tableName,
       Item: {
         id: { S: id },
-        product: { S: "monitoring-mug" },
-        source: { S: "twitter" },
+        product: { S: product },
+        media_source: { S: source },
         timestamp_utc: { N: `${timestamp_utc}` },
-        sentiment: { N: "-1" }
+        sentiment: { N: `${sentiment}` }
       }
     }
     try {
       const results = await client.send(new PutItemCommand(item));
-      // debug
-      console.log(results);
-      return { 'message': 'All sentiment stuff.' }
+      return { 
+        'status': results['$metadata']['httpStatusCode'],
+        'message': results['$metadata']['requestId'] 
+      }
     } catch (err) {
       fastify.log.error(err)
     }
