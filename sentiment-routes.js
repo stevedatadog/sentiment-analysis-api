@@ -3,7 +3,11 @@ const { DynamoDB, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 
 async function routes (fastify, options) {
 
-  const client = new DynamoDB({ region:  options.config.awsDynamoRegion });
+  const client = new DynamoDB({ 
+    AccessKeyId: options.config.awsAccessKeyId,
+    SecretAccessKey: options.config.awsSecretAccessKey,
+    region:  options.config.awsDynamoRegion 
+  });
 
   fastify.get('/', async (request, reply) => {
     return { 'message': 'Greetings from the Storedog Sentiment Analysis Engine' }
@@ -21,12 +25,15 @@ async function routes (fastify, options) {
   })
 
   fastify.post('/create', async (request, reply) => {
+    id = crypto.randomUUID();
+    timestamp_utc = Math.floor(new Date().getTime() / 1000);
     const item = {
       TableName: "storedog-sentiment-v2",
       Item: {
-        id: { S: crypto.randomUUID() },
-        product: { S: "datadog-bag" },
-        source: { S: "instagram" },
+        id: { S: id },
+        product: { S: "monitoring-mug" },
+        source: { S: "twitter" },
+        timestamp_utc: { N: `${timestamp_utc}` },
         sentiment: { N: "-1" }
       }
     }

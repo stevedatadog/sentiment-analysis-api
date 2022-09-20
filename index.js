@@ -1,6 +1,8 @@
 const config = {
   logPath: process.env['SAA_LOG_PATH'] ?? 'saa.log',
   listenPort: process.env['SAA_LISTEN_PORT'] ?? 3000,
+  awsAccessKeyId: process.env['AWS_ACCESS_KEY_ID'],
+  awsSecretAccessKey: process.env['AWS_SECRET_ACCESS_KEY'],
   awsDynamoRegion: process.env['AWS_DYNAMO_REGION'] ?? "us-west-2"
 }
 
