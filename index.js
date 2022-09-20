@@ -1,6 +1,6 @@
 const config = {
-  logPath: process.env['SAE_LOG_PATH'] ?? 'sae.log',
-  listenPort: process.env['SAE_LISTEN_PORT'] ?? 3000,
+  logPath: process.env['SAA_LOG_PATH'] ?? 'saa.log',
+  listenPort: process.env['SAA_LISTEN_PORT'] ?? 3000,
   awsDynamoRegion: process.env['AWS_DYNAMO_REGION'] ?? "us-west-2"
 }
 
