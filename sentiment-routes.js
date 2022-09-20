@@ -2,6 +2,24 @@ const crypto = require("crypto");
 const { DynamoDB, PutItemCommand, ScanCommand } = require("@aws-sdk/client-dynamodb");
 const tableName = "storedog-sentiment-v2";
 
+const itemValidate = item => (
+  'product' in item && 'S' in item['product']
+  && 'media_source' in item && 'S' in item['media_source']
+  && 'id' in item && 'S' in item['id']
+  && 'sentiment' in item && 'N' in item['sentiment']
+  && 'timestamp_utc' in item && 'N' in item['timestamp_utc']
+)
+
+const formatDynamoResults = results => results.map(item => {
+  return {
+    product: item['product']['S'],
+    source: item['media_source']['S'],
+    id: item['id']['S'],
+    sentiment: item['sentiment']['N'],
+    timestamp_utc : item['timestamp_utc']['N'] 
+  }
+});
+
 async function routes (fastify, options) {
 
   const client = new DynamoDB({ 
@@ -11,7 +29,7 @@ async function routes (fastify, options) {
   });
 
   fastify.get('/', async (request, reply) => {
-    return { 'message': 'Greetings from the Storedog Sentiment Analysis Engine' }
+    return { 'message': 'Greetings from the Storedog Sentiment Analysis API' }
   })
 
   // Returns all sentiment records from the previous X minutes
@@ -29,7 +47,20 @@ async function routes (fastify, options) {
 
     try {
       const results = await client.send(new ScanCommand(params));
-      return { 'message': 'All sentiment stuff.' }
+
+      if (!results['Items']) { 
+        fastify.log.error(`No items found in results.`);
+        return {}
+      }
+
+      return formatDynamoResults(results['Items'].filter(item => {
+        if (!itemValidate(item)) {
+          fastify.log.error(`item is invalid: ${JSON.stringify(item)}`)
+          return false;
+        }
+        return true;
+      }));
+
     } catch (err) {
       fastify.log.error(err)
     }
@@ -62,4 +93,4 @@ async function routes (fastify, options) {
   })
 }
 
-module.exports = routes
+module.exports = routes;
