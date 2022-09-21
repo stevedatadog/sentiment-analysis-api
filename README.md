@@ -13,7 +13,7 @@ Requirements
 - An existing DynamoDB table. The app is hardcoded with `storedog-sentiment-v2` in `us-west-2`.
 - AWS credentials.
 
-Usage
+Running
 ---
 
 Assuming you have a DynamoDB table named `storedog-sentiment-v2` in `us-west-2` (these are currently hardcoded):
@@ -35,12 +35,17 @@ The API has three JSON endpoints:
 `GET /` 
 : displays a welcome message
 
+![An example of calling the root endpoint](./screenshots/saa_browser_root.png)
+
 `GET /query` 
 : displays a list of items. You can add the query string `?minutes=10` to get items created in the last 10 minutes. Any number of minutes works.
+
+![An example of calling the query endpoint](./screenshots/saa_browser_query.png)
 
 `POST /create`
 : which accepts a JSON payload to create an item.
 
+![An example of POSTing an item using curl](./screenshots/saa_curl_post.png)
 
 You can create items like this:
 
@@ -80,3 +85,18 @@ Sentiment can be any number, but it is intended to be one of:
 |  0    | neutral   |
 |  1    | positive  |
 
+
+Logs
+---
+This app has nice logs.
+
+```json
+{"level":30,"time":1663718567116,"pid":62236,"hostname":"amalthea","reqId":"req-4","req":{"method":"POST","url":"/create","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":60474},"msg":"incoming request"}
+{"level":30,"time":1663718567502,"pid":62236,"hostname":"amalthea","reqId":"req-4","res":{"statusCode":200},"responseTime":386.3229390382767,"msg":"request completed"}
+{"level":30,"time":1663718600177,"pid":62236,"hostname":"amalthea","reqId":"req-5","req":{"method":"POST","url":"/create","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":60476},"msg":"incoming request"}
+{"level":30,"time":1663718600235,"pid":62236,"hostname":"amalthea","reqId":"req-5","res":{"statusCode":200},"responseTime":58.56933403015137,"msg":"request completed"}
+{"level":30,"time":1663718710836,"pid":62236,"hostname":"amalthea","reqId":"req-6","req":{"method":"GET","url":"/query?minutes=1440","hostname":"localhost:3000","remoteAddress":"127.0.0.1","remotePort":60499},"msg":"incoming request"}
+{"level":50,"time":1663718711178,"pid":62236,"hostname":"amalthea","msg":"item is invalid: {\"product\":{\"S\":\"monitoring-mug\"},\"id\":{\"S\":\"8254605f-bbd4-4bcf-820f-175a4c88781f\"},\"sentiment\":{\"N\":\"-1\"},\"timestamp_utc\":{\"N\":\"1663638770\"}}"}
+{"level":50,"time":1663718711178,"pid":62236,"hostname":"amalthea","msg":"item is invalid: {\"product\":{\"S\":\"monitoring-mug\"},\"id\":{\"S\":\"2af3c6d7-9f22-4c60-9325-71d6d276ef4a\"},\"sentiment\":{\"N\":\"-1\"},\"timestamp_utc\":{\"N\":\"1663638709\"}}"}
+{"level":30,"time":1663718711179,"pid":62236,"hostname":"amalthea","reqId":"req-6","res":{"statusCode":200},"responseTime":343.18074691295624,"msg":"request completed"}
+```
