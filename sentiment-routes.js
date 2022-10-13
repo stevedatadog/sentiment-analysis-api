@@ -23,8 +23,6 @@ const formatDynamoResults = results => results.map(item => {
 async function routes (fastify, options) {
 
   const client = new DynamoDB({ 
-    AccessKeyId: options.config.awsAccessKeyId,
-    SecretAccessKey: options.config.awsSecretAccessKey,
     region:  options.config.awsDynamoRegion 
   });
 
